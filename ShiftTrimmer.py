@@ -66,7 +66,7 @@ def shiftTrim(files, xi, xf, yi, yf, dx=None, dy=None, fnew=None, newdir=TRIMDIR
             f = f + '.' + fnew
 
         if test == False:
-            iraf.imcopy(f_trim, TRIMDIR + f)
+            iraf.imcopy(f_trim, newdir + f)
         
 
 def fileFinder(minNum, maxNum, imdir=IMDIR, imroot=IMROOT, imext=IMEXT):
