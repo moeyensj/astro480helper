@@ -8,11 +8,13 @@ IMDIR = ''
 IMROOT = 'HatP12b.Light.60S1X2.V.'
 IMEXT = '' 
 
+TRIMDIR = 'trimmedimages/'
+
 ### CCD size
 CCDx = 1092
 CCDy = 736
 
-def shiftTrim(files, xi, xf, yi, yf, dx=None, dy=None, fnew=None, test=False):
+def shiftTrim(files, xi, xf, yi, yf, dx=None, dy=None, fnew=None, newdir=TRIMDIR, test=False):
     """
     Given initial and final x and y values of shifted stars, will compute shift in x and y and 
     trim files to compensate for shifting image.
@@ -34,6 +36,7 @@ def shiftTrim(files, xi, xf, yi, yf, dx=None, dy=None, fnew=None, test=False):
     dx: (int) [None], overwrite x shift value (will ignore xi,xf)
     dy: (int) [None], overwrite y shift value (will ignore yi,yf)
     fnew: (string) [None], add string to new file name
+    newdir: (string) [TRIMDIR], trimmed image directory
     test: (boolean) [False], if True will only print pixel output and not trim files
     ----------------------
     """
@@ -63,7 +66,7 @@ def shiftTrim(files, xi, xf, yi, yf, dx=None, dy=None, fnew=None, test=False):
             f = f + '.' + fnew
 
         if test == False:
-            iraf.imcopy(f_trim, f)
+            iraf.imcopy(f_trim, TRIMDIR + f)
         
 
 def fileFinder(minNum, maxNum, imdir=IMDIR, imroot=IMROOT, imext=IMEXT):
