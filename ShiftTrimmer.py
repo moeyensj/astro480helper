@@ -12,7 +12,7 @@ IMEXT = ''
 CCDx = 1092
 CCDy = 736
 
-def shiftTrim(files, xi, xf, yi, yf, dx=None, dy=None, test=False):
+def shiftTrim(files, xi, xf, yi, yf, dx=None, dy=None, fnew=None, test=False):
     """
     Given initial and final x and y values of shifted stars, will compute shift in x and y and 
     trim files to compensate for shifting image.
@@ -33,9 +33,15 @@ def shiftTrim(files, xi, xf, yi, yf, dx=None, dy=None, test=False):
     yx: (int), final y value(s) for star(s)
     dx: (int) [None], overwrite x shift value (will ignore xi,xf)
     dy: (int) [None], overwrite y shift value (will ignore yi,yf)
+    fnew: (string) [None], add string to new file name
     test: (boolean) [False], if True will only print pixel output and not trim files
     ----------------------
     """
+    xi = np.array(xi)
+    xf = np.array(xf)
+    yi = np.array(yi)
+    yf = np.array(yf)
+    
     num = len(files) - 1
     
     if dx == None:
@@ -52,6 +58,10 @@ def shiftTrim(files, xi, xf, yi, yf, dx=None, dy=None, test=False):
         print "x: %s, y: %s, x*y: %s" % (x, y, ((x[1]-x[0])*(y[1]-y[0])))
         
         f_trim = f + '[%s:%s,%s:%s]' % (x[0],x[1],y[0],y[1])
+
+        if fnew != None:
+            f = f + '.' + fnew
+
         if test == False:
             iraf.imcopy(f_trim, f)
         
@@ -83,9 +93,9 @@ def _dCalc(i,f,num,axis):
     d = int((np.average(f - i) / num))
     
     if d == 0:
-        if (f - i) > 0:
+        if np.average(f - i) > 0:
             d = 1
-        elif (f - i) < 0:
+        elif np.average(f - i) < 0:
             d = -1
         else:
             print 'No pixel shift detected in %s' % axis
