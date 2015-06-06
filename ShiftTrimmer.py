@@ -15,7 +15,7 @@ CCDx = 1092
 CCDy = 736
 
 def shiftTrim(files, xi, xf, yi, yf, dx=None, dy=None, offset_x=0, offset_y=0, 
-    fnew=None, newdir=TRIMDIR, test=False):
+    fnew='', newdir=TRIMDIR, test=False):
     """
     Given initial and final x and y values of shifted stars, will compute shift in x and y and 
     trim files to compensate for shifting image.
@@ -94,10 +94,10 @@ def fileFinder(minNum, maxNum, imdir=IMDIR, imroot=IMROOT, imext=IMEXT):
 
     return files
 
-def batchOperation(minNum, maxNum, batchsize, dx, dy, fnew=None, newdir=TRIMDIR, imdir=IMDIR, 
+def batchOperation(minNum, maxNum, batchsize, dx, dy, fnew='', offset_batchnum=0, newdir=TRIMDIR, imdir=IMDIR, 
     imroot=IMROOT, imext=IMEXT, test=False):
 
-    mins, maxs, batchnum, remainder, batchnames = batchFinder(minNum, maxNum, batchsize, fnew)
+    mins, maxs, batchnum, remainder, batchnames = batchFinder(minNum, maxNum, batchsize, fnew, offset_batchnum)
 
     for i in range(batchnum):
         files = fileFinder(mins[i],maxs[i])
@@ -112,7 +112,7 @@ def batchOperation(minNum, maxNum, batchsize, dx, dy, fnew=None, newdir=TRIMDIR,
 
     return
 
-def batchFinder(minNum, maxNum, batchsize, fnew):
+def batchFinder(minNum, maxNum, batchsize, fnew, offset_batchnum=0):
 
     total = maxNum - minNum
     batchnum = (total + 1) / batchsize
@@ -125,13 +125,13 @@ def batchFinder(minNum, maxNum, batchsize, fnew):
     for i in range(batchnum):
         mins.append(minNum + batchsize*i)
         maxs.append(minNum + batchsize + batchsize*i - 1)
-        batchnames.append(fnew + '.b' + str(i + 1))
+        batchnames.append(fnew + '.b' + str(offset_batchnum + i + 1))
 
     if remainder != 0:
         mins.append(max(maxs)+1)
         maxs.append(max(maxs)+ remainder)
         batchnum += 1
-        batchnames.append(fnew + '.b' + str(batchnum))
+        batchnames.append(fnew + '.b' + str(offset_batchnum + batchnum))
 
     return mins, maxs, batchnum, remainder, batchnames
 
