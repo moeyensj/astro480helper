@@ -121,17 +121,20 @@ def batchFinder(minNum, maxNum, batchsize, fnew, offset_batchnum=0):
     mins = []
     maxs = []
     batchnames = []
+
+    if fnew != '':
+        fnew = fnew + '.'
     
     for i in range(batchnum):
         mins.append(minNum + batchsize*i)
         maxs.append(minNum + batchsize + batchsize*i - 1)
-        batchnames.append(fnew + '.b' + str(offset_batchnum + i + 1))
+        batchnames.append(fnew + 'b' + str(offset_batchnum + i + 1))
 
     if remainder != 0:
         mins.append(max(maxs)+1)
         maxs.append(max(maxs)+ remainder)
         batchnum += 1
-        batchnames.append(fnew + '.b' + str(offset_batchnum + batchnum))
+        batchnames.append(fnew + 'b' + str(offset_batchnum + batchnum))
 
     return mins, maxs, batchnum, remainder, batchnames
 
