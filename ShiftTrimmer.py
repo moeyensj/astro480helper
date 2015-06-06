@@ -14,7 +14,8 @@ TRIMDIR = 'trimmedimages/'
 CCDx = 1092
 CCDy = 736
 
-def shiftTrim(files, xi, xf, yi, yf, dx=None, dy=None, fnew=None, newdir=TRIMDIR, test=False):
+def shiftTrim(files, xi, xf, yi, yf, dx=None, dy=None, offset_x=0, offset_y=0, 
+    fnew=None, newdir=TRIMDIR, test=False):
     """
     Given initial and final x and y values of shifted stars, will compute shift in x and y and 
     trim files to compensate for shifting image.
@@ -55,8 +56,9 @@ def shiftTrim(files, xi, xf, yi, yf, dx=None, dy=None, fnew=None, newdir=TRIMDIR
     
     print 'dx: %s, dy: %s' % (dx,dy)
     for i,f in enumerate(files):
-        x = _pixelFinder(dx, i, abs(dx*num), 1, CCDx)
-        y = _pixelFinder(dy, i, abs(dy*num), 1, CCDy)
+
+        x = _pixelFinder(dx, i, abs(dx*num), 1, CCDx, offset_x)
+        y = _pixelFinder(dy, i, abs(dy*num), 1, CCDy, offset_y)
         
         print "x: %s, y: %s, x*y: %s" % (x, y, ((x[1]-x[0])*(y[1]-y[0])))
         
@@ -92,6 +94,51 @@ def fileFinder(minNum, maxNum, imdir=IMDIR, imroot=IMROOT, imext=IMEXT):
 
     return files
 
+def batchOperation(minNum, maxNum, batchsize, dx, dy, fnew=None, newdir=TRIMDIR, imdir=IMDIR, 
+    imroot=IMROOT, imext=IMEXT, test=False):
+
+    mins, maxs, batchnum, remainder, batchnames = batchFinder(minNum, maxNum, batchsize, fnew)
+
+    for i in range(batchnum):
+        files = fileFinder(mins[i],maxs[i])
+
+        if remainder != 0 and i == max(range(batchnum)):
+            offset_x = _offsetCalc(dx, batchsize, remainder)
+            offset_y = _offsetCalc(dy, batchsize, remainder)
+            shiftTrim(files,0,0,0,0, dx=dx, dy=dy, offset_x=offset_x, offset_y=offset_y, fnew=batchnames[i], 
+                newdir=newdir, test=test)
+        else:
+            shiftTrim(files,0,0,0,0, dx=dx, dy=dy, offset_x=0, offset_y=0, fnew=batchnames[i], newdir=newdir, test=test)
+
+    return
+
+def batchFinder(minNum, maxNum, batchsize, fnew):
+
+    total = maxNum - minNum
+    batchnum = (total + 1) / batchsize
+    remainder = (total + 1) % batchsize
+
+    mins = []
+    maxs = []
+    batchnames = []
+    
+    for i in range(batchnum):
+        mins.append(minNum + batchsize*i)
+        maxs.append(minNum + batchsize + batchsize*i - 1)
+        batchnames.append(fnew + '.b' + str(i + 1))
+
+    if remainder != 0:
+        mins.append(max(maxs)+1)
+        maxs.append(max(maxs)+ remainder)
+        batchnum += 1
+        batchnames.append(fnew + '.b' + str(batchnum))
+
+    return mins, maxs, batchnum, remainder, batchnames
+
+def _offsetCalc(d, batchsize, remainder):
+    offset = batchsize - remainder
+    return (offset*abs(d))
+
 def _dCalc(i,f,num,axis):
     d = int((np.average(f - i) / num))
     
@@ -106,8 +153,8 @@ def _dCalc(i,f,num,axis):
 
     return d
     
-def _pixelFinder(dp, i, dpmax, pmin, pmax):
+def _pixelFinder(dp, i, dpmax, pmin, pmax, offset):
     if dp > 0:
-        return [pmin + dp*i, (pmax - dpmax) + dp*i]
+        return [offset + pmin + dp*i, (pmax - dpmax) + dp*i]
     else: 
-        return [dpmax + 1 + dp*i, pmax + dp*i]
+        return [dpmax + 1 + dp*i, pmax - offset + dp*i]
